@@ -1,0 +1,132 @@
+<html>
+  <head>
+    <link rel="stylesheet" href="bootstrap/css/bootstrap.min.css">
+    <script src="jquery-3.2.1.min.js"></script>
+    <script src="bootstrap/js/bootstrap.min.js"></script>
+    <script>
+      <% totaltasks = 0 %>
+      <% unless @standuptasks.empty? %>
+      <% @standuptasks.each do |task_category_name, task_category| %>
+      <% totaltasks += task_category["tasks"].length %>
+      <% end %>
+      <% end %>
+      var counter = <%= totaltasks %>;
+      function removebox(id) {
+        div=document.getElementById("task" + id)
+        div.parentNode.removeChild(div);
+        counter -= 1;
+      }
+
+      function addbox() {
+        tasks=document.getElementById("tasks");
+        div=document.createElement("div");
+        div.id="div" + counter
+        removebutton=document.getElementById("removebutton")
+        removebutton.setAttribute("onClick", "removebox(" + counter + ");")
+        template=document.getElementById("options");
+        clone = template.cloneNode(true);
+        clone.style.display = "block"
+        clone.id="task" + counter
+        counter += 1
+        tasks.append(clone);
+      }
+
+    </script>
+  </head>
+  <body>
+    <div class="row">
+      <div class="col-sm-3"></div>
+        <div class="col-sm-6">
+
+        <div class="page-header">
+          <center><h1>Standup</h1></center>
+        </div>
+
+        <% unless @standuptasks.empty? %>
+        <div class="panel panel-default">
+          <div class="panel-body">
+            <% @standuptasks.each do |task_category_name, task_category| %>
+            <% unless task_category["tasks"].empty? %>
+            <%= "#{task_category["header"]}<br>" %>
+            <% task_category["tasks"].each do |task| %>
+            <%= "*#{task["summary"]}*<br>" %>
+            <%= ">#{task["description"].split("\n").join("<br>>")}<br>" %>
+            <% end %>
+            <% end %>
+            <% end %>
+          </div>
+        </div>
+        <% end %>        
+
+          <div class="well" style="display:none" id="options">
+            <div>
+              <div class="form-group">
+                <label for="status">Task Status</label>
+                <select name="tasks[]status[]" class="form-control">
+                  <option value="inprogress">In Progress</option>
+                  <option value="blocked">Blocked</option>
+                  <option value="validation">Validation</option>
+                  <option value="complete">Complete</option>
+                </select><br>
+              </div>
+              <div class="form-group">
+                <label for="summary">Summary</label>
+                <input type="text" name="tasks[]summary[]" class="form-control"><br>
+              </div>
+              <div class="form-group">
+                <label for="description">Description</label>
+                <textarea rows="6" cols="60" name="tasks[]description[]" class="form-control"></textarea><br>
+              </div>
+              <div class="form-group">
+                <input type="button" value="Remove" class="btn btn-danger" id="removebutton"><br>
+              </div>
+            </div>
+          </div>
+          <form action="." method="post" name="standup">
+          <div id="tasks">
+            <% unless @standuptasks.empty? %>
+            <% counter = 0 %>
+            <% @standuptasks.each do |task_category_name, task_category| %>
+            <% unless task_category["tasks"].empty? %>
+            <% task_category["tasks"].each do |task| %>
+            <div class="well" id="task<%= counter %>">
+              <div>
+                <div class="form-group">
+                  <label for="status">Task Status</label>
+                  <select name="tasks[]status[]" class="form-control">
+                    <% [["inprogress","In Progress"],["blocked","Blocked"],["validation","Validation"],["upnext","Up Next"],["complete","Complete"]].each do |status| %>
+                    <option value="<%= status[0] %>" <% if status[0] == task_category_name %>selected<% end %>><%= status[1] %></option>
+                    <% end %>
+                  </select><br>
+                </div>
+                <div class="form-group">
+                  <label for="summary">Summary</label>
+                  <input type="text" name="tasks[]summary[]" class="form-control" value="<%= task["summary"] %>"><br>
+                </div>
+                <div class="form-group">
+                  <label for="description">Description</label>
+                  <textarea rows="6" cols="60" name="tasks[]description[]" class="form-control"><%= task["description"] %></textarea><br>
+                </div>
+                <div class="form-group">
+                  <input type="button" value="Remove" class="btn btn-danger" id="removebutton" onclick="removebox(<%= counter %>)"><br>
+                </div>
+              </div>
+            </div>
+            <% counter += 1 %>
+            <% end %>
+            <% end %>
+            <% end %>
+            <% end %>
+          </div>
+          <div class="form-group">
+            <input type="button" value="Add a new Task" class="btn btn-default" onclick=addbox()><br>
+          </div>
+          <div class="form-group">
+            <input type="submit" class="btn btn-primary">
+          </div>
+        </form>
+      </div>
+      <div class="col-sm-3"></div>
+    </div>
+  </body>
+</html>
