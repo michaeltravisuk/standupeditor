@@ -1,0 +1,11 @@
+{
+	"name": "Standup Editor",
+	"description": "Interactive Virtual Standup Message Editor",
+	"image": "heroku/ruby",
+	"addons": [
+		{
+			"plan": "heroku-redis:hobby-dev",
+			"as": "REDIS"
+		}
+	]
+}
