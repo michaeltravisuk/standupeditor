@@ -2,6 +2,7 @@ require 'sinatra'
 require 'erb'
 require 'redis'
 require 'json'
+require 'date'
 
 #ENV["PORT"] = "8080"
 
@@ -11,17 +12,48 @@ redis = Redis.new(url: ENV["REDIS_URL"])
 set :bind, '0.0.0.0'
 set :port, ENV["PORT"]
 
-def retrieve_standup(redis)
-  tasksjson = redis.get("standup")
+def retrieve_standup(redis, name, date)
+  if redis.exists(name)
+    if redis.hexists(name, date)
+      tasksjson = redis.hget(name, date)
+    end
+  end
   if tasksjson.nil?
-    ""
+    {}
   else
     JSON.parse(tasksjson)
   end
 end
 
+def list_standups(redis, name)
+  if redis.exists(@name)
+    if redis.hlen(@name) > 0
+      redis.hkeys(@name).map{|standup|Date.parse(standup)}.sort
+    end
+  end
+end
+
 get '/' do
-  @standuptasks = retrieve_standup(redis)
+  unless params["name"].nil?
+    @name = params["name"]
+    @standupdates = list_standups(redis, @name)
+    if params["date"].nil?
+      unless @standupdates.nil?
+        @date=Date.today.strftime
+        @standuptasks = retrieve_standup(redis, @name, @standupdates.last.strftime)
+      else
+        @date=Date.today.strftime
+        @standupdates = []
+        @standuptasks = []
+      end
+    else
+      @date=params["date"]
+      @standuptasks = retrieve_standup(redis, @name, @date)
+    end
+  else
+    @name = nil
+    @standupdates = []
+  end
   erb :index
 end
 
@@ -52,8 +84,22 @@ post '/' do
     end
     i += 1
   end
-  redis.set("standup", JSON.dump(record))
 
-  @standuptasks = retrieve_standup(redis)
+  @name=params["name"]
+
+  if params["date"].nil?
+    @date=Date.today.strftime
+  else
+    @date=params["date"]
+  end
+
+  redis.hset(@name, @date, JSON.dump(record))
+
+  @standupdates = list_standups(redis, @name)
+  if @standupdates.nil?
+    @standupdates = []
+  end
+
+  @standuptasks = retrieve_standup(redis, @name, @date)
   erb :index
 end

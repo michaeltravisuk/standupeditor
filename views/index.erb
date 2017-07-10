@@ -6,7 +6,7 @@
     <script src="bootstrap/js/bootstrap.min.js"></script>
     <script>
       <% totaltasks = 0 %>
-      <% unless @standuptasks.empty? %>
+      <% unless @standuptasks.nil? %>
       <% @standuptasks.each do |task_category_name, task_category| %>
       <% totaltasks += task_category["tasks"].length %>
       <% end %>
@@ -35,15 +35,46 @@
     </script>
   </head>
   <body>
+  <nav class="navbar navbar-inverse">
+    <div class="container-fluid">
+      <div class="navbar-header">
+        <a class="navbar-brand" href="#">Standup Editor</a>
+      </div>
+      <ul class="nav navbar-nav">
+        <li class="active"><a href="#">Home</a></li>
+        <% unless @standupdates.empty? %>
+        <li class="dropdown">
+          <a class="dropdown-toggle" data-toggle="dropdown" href="#">Standups
+          <span class="caret"></span></a>
+          <ul class="dropdown-menu">
+          <% @standupdates.each do |standupdate|%>
+            <li><a href="?name=<%= @name %>&date=<%= standupdate %>"><%= standupdate %></a></li>
+          <% end %>
+          </ul>
+        </li>
+        <% end %>
+      </ul>
+    </div>
+  </nav>
     <div class="row">
-      <div class="col-sm-3"></div>
+      <div class="col-sm-3">
+      </div>
         <div class="col-sm-6">
+          <div class="form-group">
+            <form action="." method="get" name="name">
+              <label for="name">Name:</label>
+              <input type="text" name="name" <% unless @name.nil? %>value="<%= @name %>"<% end %> class="form-control">
+              <input type="submit" class="btn btn-default">
+            </form>
+          </div>
+
+        <% unless @name.nil? %>
 
         <div class="page-header">
-          <center><h1>Standup</h1></center>
+          <center><h1><%= @name %>’s Standup - <%= Date.parse(@date).strftime("%a %d %B %Y") %></h1></center>
         </div>
 
-        <% unless @standuptasks.empty? %>
+        <% unless @standuptasks.nil? %>
         <div class="panel panel-default">
           <div class="panel-body">
             <% @standuptasks.each do |task_category_name, task_category| %>
@@ -57,7 +88,7 @@
             <% end %>
           </div>
         </div>
-        <% end %>        
+        <% end %>
 
           <div class="well" style="display:none" id="options">
             <div>
@@ -84,7 +115,9 @@
               </div>
             </div>
           </div>
-          <form action="." method="post" name="standup">
+          <form action="./?name=<%= @name %>&date=<%= @date %>" method="post" name="standup">
+          <input type="hidden" name="name" class="form-control" value="<%= @name %>">
+          <input type="hidden" name="date" class="form-control" value="<%= @date %>">
           <div id="tasks">
             <% unless @standuptasks.empty? %>
             <% counter = 0 %>
@@ -127,6 +160,7 @@
             <input type="submit" class="btn btn-primary">
           </div>
         </form>
+        <% end %>
       </div>
       <div class="col-sm-3"></div>
     </div>
