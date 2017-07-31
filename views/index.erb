@@ -98,7 +98,7 @@
             <%= "#{task_category["header"]}<br>" %>
             <% task_category["tasks"].each do |task| %>
             <%= "*#{task["summary"]}*<br>" %>
-            <%= "> #{task["description"].split("\n").join("<br> >")}<br>" %>
+            <%= "> #{task["description"].split("\n").join("<br>> ")}<br>" %>
             <% end %>
             <% end %>
             <% end %>
